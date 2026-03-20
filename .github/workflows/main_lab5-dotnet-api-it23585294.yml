@@ -9,21 +9,21 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      
+
       - name: Build with dotnet
         run: dotnet build DotNetBackend/DotNetBackend.csproj --configuration Release
-      
+
       - name: Publish
         run: dotnet publish DotNetBackend/DotNetBackend.csproj -c Release -o ./publish
-      
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -36,13 +36,20 @@ jobs:
     environment:
       name: 'production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_5AD62AA717B74F19AE28CD68064880D1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FB5B97E7B7984A31A8E770A4B62D5946 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1662EC9DDC6647658D0BB48BD2D7256E }}
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -50,5 +57,4 @@ jobs:
           app-name: 'lab5-dotnet-api-IT23585294'
           slot-name: 'production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           startup-command: 'dotnet DotNetBackend.dll'
