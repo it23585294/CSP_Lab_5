@@ -1,4 +1,4 @@
-name: Build and deploy ASP.NET Core app to Azure Web App - lab5-dotnet-api-IT23585294
+name: Build and deploy .NET app to Azure Web App
 
 on:
   push:
@@ -11,10 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
@@ -25,15 +22,18 @@ jobs:
         run: dotnet restore DotNetBackend/DotNetBackend.csproj
 
       - name: Build
-        run: dotnet build DotNetBackend/DotNetBackend.csproj --configuration Release --no-restore
+        run: dotnet build DotNetBackend/DotNetBackend.csproj --configuration Release
 
       - name: Publish
-        run: dotnet publish DotNetBackend/DotNetBackend.csproj -c Release -o ./publish --no-build
+        run: dotnet publish DotNetBackend/DotNetBackend.csproj -c Release -o ./publish
 
-      - name: Upload artifact for deployment job
+      - name: List publish contents
+        run: ls -la ./publish
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
+          name: published-app
           path: ./publish
 
   deploy:
@@ -41,18 +41,19 @@ jobs:
     needs: build
     
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
-          path: .
+          name: published-app
+          path: ./deploy
+
+      - name: List deployment contents
+        run: ls -la ./deploy
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'lab5-dotnet-api-IT23585294'
           slot-name: 'production'
-          package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          startup-command: 'dotnet DotNetBackend.dll'
+          package: ./deploy
