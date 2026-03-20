@@ -1,0 +1,40 @@
+name: Deploy React App to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'react-frontend/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          cd react-frontend
+          npm install
+          
+      - name: Build
+        run: |
+          cd react-frontend
+          npm run build
+        env:
+          REACT_APP_API_URL: https://lab5-dotnet-api-it23585294-dvakbjaqg2fjb3b5.indonesiacentral-01.azurewebsites.net
+          
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'lab5-react-app-23585294'
+          publish-profile: ${{ secrets.AZURE_REACT_PUBLISHPROFILE }}
+          package: ./react-frontend/build
