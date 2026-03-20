@@ -32,13 +32,9 @@ jobs:
         env:
           REACT_APP_API_URL: https://lab5-dotnet-api-it23585294-dvakbjaqg2fjb3b5.indonesiacentral-01.azurewebsites.net
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          publish-profile: ${{ secrets.AZURE_REACT_PUBLISHPROFILE }}
-
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'lab5-react-app-23585294'
+          publish-profile: ${{ secrets.AZURE_REACT_PUBLISHPROFILE }}
           package: ./react-frontend/build
